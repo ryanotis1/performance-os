@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Performance OS</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8f8f6;color:#1a1a1a;padding:1.5rem}
+.app{max-width:680px;margin:0 auto}
+.nav{display:flex;gap:3px;margin-bottom:1.5rem;background:#efefed;border-radius:12px;padding:4px}
+.nav button{flex:1;padding:7px 4px;border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;background:transparent;color:#666;transition:all 0.15s}
+.nav button.active{background:#fff;color:#1a1a1a;border:0.5px solid rgba(0,0,0,0.12)}
+.section{display:none}.section.active{display:block}
+.card{background:#fff;border:0.5px solid rgba(0,0,0,0.12);border-radius:12px;padding:1.25rem;margin-bottom:1rem}
+.ct{font-size:11px;color:#888;margin-bottom:1rem;font-weight:500;text-transform:uppercase;letter-spacing:0.05em}
+.row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid rgba(0,0,0,0.08)}
+.row:last-child{border-bottom:none;padding-bottom:0}
+.rowc{display:flex;flex-direction:column;align-items:flex-start;padding:10px 0;border-bottom:0.5px solid rgba(0,0,0,0.08);gap:8px}
+.rowc:last-child{border-bottom:none;padding-bottom:0}
+.lbl{font-size:14px;color:#1a1a1a}
+.sub{font-size:11px;color:#888;margin-top:2px}
+.tog{display:flex;gap:5px}
+.tbtn{width:30px;height:30px;border-radius:8px;border:0.5px solid rgba(0,0,0,0.2);background:transparent;cursor:pointer;font-size:12px;font-weight:500;color:#666;transition:all 0.15s}
+.tbtn.yes{background:#E1F5EE;color:#085041;border-color:#5DCAA5}
+.tbtn.no{background:#FCEBEB;color:#791F1F;border-color:#F09595}
+.mrow{display:flex;gap:5px;flex-wrap:wrap}
+.mbtn{padding:5px 11px;border-radius:20px;border:0.5px solid rgba(0,0,0,0.15);background:transparent;cursor:pointer;font-size:12px;color:#666;transition:all 0.15s}
+.mbtn.sel{background:#f0f0ee;color:#1a1a1a;border-color:rgba(0,0,0,0.3);font-weight:500}
+.slw{width:190px}
+.slw .slabel{font-size:12px;color:#888;display:flex;justify-content:space-between;margin-bottom:4px}
+.slw .sval{font-weight:500;color:#1a1a1a}
+.num{display:flex;align-items:center;gap:6px}
+.num input{width:52px;padding:5px 8px;border:0.5px solid rgba(0,0,0,0.2);border-radius:8px;font-size:13px;text-align:center;background:transparent;color:#1a1a1a}
+.nbtn{width:26px;height:26px;border:0.5px solid rgba(0,0,0,0.2);border-radius:6px;background:transparent;cursor:pointer;font-size:15px;color:#666}
+textarea,input[type=text]{padding:9px;border:0.5px solid rgba(0,0,0,0.2);border-radius:8px;font-size:13px;color:#1a1a1a;background:#fff;font-family:inherit;width:100%}
+textarea{resize:none;line-height:1.5}
+input[type=range]{width:100%;accent-color:#1D9E75}
+.mg{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:1rem}
+.mc{background:#f0f0ee;border-radius:8px;padding:.875rem}
+.mc .ml{font-size:11px;color:#888;margin-bottom:4px}
+.mc .mv{font-size:20px;font-weight:500;color:#1a1a1a}
+.mv.g{color:#0F6E56}.mv.w{color:#854F0B}.mv.r{color:#A32D2D}
+.sbtn{width:100%;padding:11px;background:#fff;border:0.5px solid rgba(0,0,0,0.2);border-radius:8px;font-size:13px;font-weight:500;color:#1a1a1a;cursor:pointer;margin-top:6px;transition:all 0.15s;text-align:left;display:block}
+.sbtn:hover{background:#f8f8f6}
+.sbtn.pri{background:#1D9E75;color:#E1F5EE;border-color:#0F6E56;text-align:center}
+.sbtn.pri:hover{background:#0F6E56}
+.sbtn.saved{background:#0F6E56;color:#E1F5EE;border-color:#085041;text-align:center}
+.sbtn.err{background:#FCEBEB;color:#791F1F;border-color:#F09595;text-align:center}
+.wgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.wf label{font-size:12px;color:#888;display:block;margin-bottom:4px}
+.wf input{width:100%;padding:7px 10px;border:0.5px solid rgba(0,0,0,0.2);border-radius:8px;font-size:14px;font-weight:500;color:#1a1a1a;background:#fff}
+.fi{display:flex;gap:8px;align-items:center;margin-bottom:6px}
+.fi input{flex:1;padding:7px 10px;border:0.5px solid rgba(0,0,0,0.2);border-radius:8px;font-size:13px;color:#1a1a1a;background:#fff}
+.fi button{width:28px;height:28px;border:0.5px solid rgba(0,0,0,0.2);border-radius:8px;background:transparent;cursor:pointer;font-size:15px;color:#666;flex-shrink:0}
+.ssep{font-size:10px;font-weight:500;color:#888;text-transform:uppercase;letter-spacing:0.07em;margin:1.25rem 0 0.5rem;padding-bottom:4px;border-bottom:0.5px solid rgba(0,0,0,0.1)}
+.srow{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
+.sd{width:34px;height:34px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500}
+.sd.done{background:#E1F5EE;color:#0F6E56}
+.sd.miss{background:#f0f0ee;color:#888}
+.sd.today{background:#1D9E75;color:#E1F5EE}
+.sync-bar{background:#E1F5EE;border:0.5px solid #5DCAA5;border-radius:8px;padding:8px 12px;font-size:12px;color:#085041;margin-bottom:1rem;display:none;text-align:center}
+.sync-bar.err{background:#FCEBEB;border-color:#F09595;color:#791F1F}
+.sync-bar.show{display:block}
+.history-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid rgba(0,0,0,0.06);font-size:13px}
+.history-row:last-child{border-bottom:none}
+.history-date{color:#888;font-size:12px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div id="sync-bar" class="sync-bar"></div>
+
+<div class="nav">
+  <button class="active" onclick="showTab('morning',this)">Morning</button>
+  <button onclick="showTab('whoop',this)">Whoop</button>
+  <button onclick="showTab('food',this)">Food</button>
+  <button onclick="showTab('evening',this)">Evening</button>
+  <button onclick="showTab('stats',this)">Stats</button>
+  <button onclick="showTab('coach',this)">AI Coach</button>
+</div>
+
+<!-- MORNING -->
+<div class="section active" id="tab-morning">
+  <div class="ssep">Hygiene</div>
+  <div class="card">
+    <div class="row"><div><div class="lbl">Brush teeth (AM)</div></div><div class="tog"><button class="tbtn" id="bam-y" onclick="tog('bam','y',this)">Y</button><button class="tbtn" id="bam-n" onclick="tog('bam','n',this)">N</button></div></div>
+    <div class="row"><div><div class="lbl">Floss</div></div><div class="tog"><button class="tbtn" id="floss-y" onclick="tog('floss','y',this)">Y</button><button class="tbtn" id="floss-n" onclick="tog('floss','n',this)">N</button></div></div>
+    <div class="row"><div><div class="lbl">Shower</div></div><div class="tog"><button class="tbtn" id="shower-y" onclick="tog('shower','y',this)">Y</button><button class="tbtn" id="shower-n" onclick="tog('shower','n',this)">N</button></div></div>
+    <div class="row"><div><div class="lbl">Skincare (AM)</div><div class="sub">Moisturizer, SPF</div></div><div class="tog"><button class="tbtn" id="skam-y" onclick="tog('skam','y',this)">Y</button><button class="tbtn" id="skam-n" onclick="tog('skam','n',this)">N</button></div></div>
+    <div class="row"><div><div class="lbl">Deodorant</div></div><div class="tog"><button class="tbtn" id="deo-y" onclick="tog('deo','y',this)">Y</button><button class="tbtn" id="deo-n" onclick="tog('deo','n',this)">N</button></div></div>
+  </div>
+  <div class="ssep">Body</div>
+  <div class="card">
+    <div class="row"><div><div class="lbl">Weight (lbs)</div><div class="sub">Before eating, after bathroom</div></div><input type="number" id="weight" placeholder="—" style="width:72px;text-align:center;padding:7px 8px;border:0.5px solid rgba(0,0,0,0.2);border-radius:8px;font-size:14px;font-weight:500;background:#fff"/></div>
+    <div class="row"><div><div class="lbl">How rested? (1–10)</div><div class="sub">Your feeling, not Whoop's score</div></div><div class="slw"><div class="slabel"><span></span><span class="sval" id="rest-v">5</span></div><input type="range" min="1" max="10" value="5" step="1" oninput="document.getElementById('rest-v').textContent=this.value"/></div></div>
+    <div class="row"><div><div class="lbl">Soreness or pain?</div></div><div class="tog"><button class="tbtn" id="sore-y" onclick="tog('sore','y',this);document.getElementById('sore-row').style.display='flex'">Y</button><button class="tbtn" id="sore-n" onclick="tog('sore','n',this);document.getElementById('sore-row').style.display='none'">N</button></div></div>
+    <div class="rowc" id="sore-row" style="display:none"><div class="lbl">Where / how bad?</div><input type="text" id="sore-detail" placeholder="e.g. lower back, 4/10"/></div>
+  </div>
+  <div class="ssep">Mind & energy</div>
+  <div class="card">
+    <div class="rowc"><div class="lbl">Morning mood</div>
+      <div class="mrow" id="mood-am">
+        <button class="mbtn" onclick="selMood('am',this)">Excellent</button>
+        <button class="mbtn" onclick="selMood('am',this)">Good</button>
+        <button class="mbtn" onclick="selMood('am',this)">Okay</button>
+        <button class="mbtn" onclick="selMood('am',this)">Low</button>
+        <button class="mbtn" onclick="selMood('am',this)">Rough</button>
+      </div>
+    </div>
+    <div class="row"><div><div class="lbl">Anxiety (1–10)</div></div><div class="slw"><div class="slabel"><span></span><span class="sval" id="anx-v">3</span></div><input type="range" min="1" max="10" value="3" step="1" oninput="document.getElementById('anx-v').textContent=this.value"/></div></div>
+    <div class="row"><div><div class="lbl">Brain fog?</div></div><div class="tog"><button class="tbtn" id="fog-y" onclick="tog('fog','y',this)">Y</button><button class="tbtn" id="fog-n" onclick="tog('fog','n',this)">N</button></div></div>
+    <div class="row"><div><div class="lbl">First caffeine</div></div><input type="text" id="caff-time" placeholder="e.g. 8:30am" style="width:90px;text-align:center;padding:7px 8px;border:0.5px solid rgba(0,0,0,0.2);border-radius:8px;font-size:13px;background:#fff"/></div>
+    <div class="row"><div><div class="lbl">Coffees today</div></div><div class="num"><button class="nbtn" onclick="adj('caff-n',-1)">-</button><input type="number" id="caff-n" value="1" min="0" max="10" style="width:52px;padding:5px 8px;border:0.5px solid rgba(0,0,0,0.2);border-radius:8px;font-size:13px;text-align:center;background:#fff"/><button class="nbtn" onclick="adj('caff-n',1)">+</button></div></div>
+    <div class="rowc"><div class="lbl">Intention for today</div><textarea id="intention" rows="2" placeholder="What does a successful day look like?"></textarea></div>
+    <div class="rowc"><div class="lbl">Grateful for</div><textarea id="grateful" rows="1" placeholder="One thing..."></textarea></div>
+  </div>
+  <button class="sbtn pri" id="save-morning" onclick="save('morning',this)">Save morning check-in</button>
+</div>
+
+<!-- WHOOP -->
+<div class="section" id="tab-whoop">
+  <div class="card"><div class="ct">Recovery & heart</div><div class="wgrid">
+    <div class="wf"><label>Recovery (%)</label><input type="number" id="w-rec" placeholder="e.g. 74" min="0" max="100"/></div>
+    <div class="wf"><label>HRV (ms)</label><input type="number" id="w-hrv" placeholder="e.g. 68"/></div>
+    <div class="wf"><label>Resting HR (bpm)</label><input type="number" id="w-rhr" placeholder="e.g. 54"/></div>
+    <div class="wf"><label>SpO2 (%)</label><input type="number" id="w-spo2" placeholder="e.g. 97"/></div>
+    <div class="wf"><label>Resp rate (rpm)</label><input type="number" id="w-rr" placeholder="e.g. 14.2" step="0.1"/></div>
+    <div class="wf"><label>Skin temp delta (°F)</label><input type="number" id="w-temp" placeholder="e.g. +0.2" step="0.1"/></div>
+  </div></div>
+  <div class="card"><div class="ct">Sleep</div><div class="wgrid">
+    <div class="wf"><label>Sleep performance (%)</label><input type="number" id="w-sperf" placeholder="e.g. 82"/></div>
+    <div class="wf"><label>Duration (hrs)</label><input type="number" id="w-shrs" placeholder="e.g. 7.2" step="0.1"/></div>
+    <div class="wf"><label>Time in bed (hrs)</label><input type="number" id="w-tib" placeholder="e.g. 8.0" step="0.1"/></div>
+    <div class="wf"><label>Consistency (%)</label><input type="number" id="w-scon" placeholder="e.g. 88"/></div>
+    <div class="wf"><label>REM (%)</label><input type="number" id="w-rem" placeholder="e.g. 21"/></div>
+    <div class="wf"><label>Deep (%)</label><input type="number" id="w-deep" placeholder="e.g. 27"/></div>
+    <div class="wf"><label>Light (%)</label><input type="number" id="w-light" placeholder="e.g. 52"/></div>
+    <div class="wf"><label>Disturbances</label><input type="number" id="w-dist" placeholder="e.g. 3"/></div>
+  </div></div>
+  <div class="card"><div class="ct">Strain & output</div><div class="wgrid">
+    <div class="wf"><label>Day strain</label><input type="number" id="w-strain" placeholder="e.g. 12.4" step="0.1"/></div>
+    <div class="wf"><label>Calories burned</label><input type="number" id="w-cals" placeholder="e.g. 2800"/></div>
+  </div></div>
+  <div class="card"><div class="ct">Workout</div>
+    <div class="row"><div><div class="lbl">Workout today?</div></div>
+      <div class="tog">
+        <button class="tbtn" id="wo-y" onclick="togWo('y',this)">Y</button>
+        <button class="tbtn" id="wo-n" onclick="togWo('n',this)">N</button>
+      </div>
+    </div>
+    <div id="wo-detail" style="display:none;margin-top:12px">
+      <div class="wf" style="margin-bottom:10px"><label>Activity type</label><input type="text" id="wo-type" placeholder="e.g. Weight training, Running, Basketball"/></div>
+      <div class="wgrid">
+        <div class="wf"><label>Workout strain</label><input type="number" id="wo-strain" placeholder="e.g. 15.2" step="0.1"/></div>
+        <div class="wf"><label>Duration (min)</label><input type="number" id="wo-dur" placeholder="e.g. 45"/></div>
+        <div class="wf"><label>Avg HR (bpm)</label><input type="number" id="wo-avghr" placeholder="e.g. 142"/></div>
+        <div class="wf"><label>Max HR (bpm)</label><input type="number" id="wo-maxhr" placeholder="e.g. 178"/></div>
+      </div>
+    </div>
+  </div>
+  <button class="sbtn pri" id="save-whoop" onclick="save('whoop',this)">Save Whoop data</button>
+</div>
+
+<!-- FOOD -->
+<div class="section" id="tab-food">
+  <div class="card"><div class="ct">Breakfast</div><div id="b-items"><div class="fi"><input type="text" placeholder="e.g. 2 eggs, whole wheat toast, avocado"/><button onclick="rmFood(this)">-</button></div></div><button class="sbtn" onclick="addFood('b-items')" style="margin-top:6px">+ Add item</button></div>
+  <div class="card"><div class="ct">Lunch</div><div id="l-items"><div class="fi"><input type="text" placeholder="e.g. Grilled chicken salad"/><button onclick="rmFood(this)">-</button></div></div><button class="sbtn" onclick="addFood('l-items')" style="margin-top:6px">+ Add item</button></div>
+  <div class="card"><div class="ct">Dinner</div><div id="d-items"><div class="fi"><input type="text" placeholder="e.g. Salmon, roasted broccoli, brown rice"/><button onclick="rmFood(this)">-</button></div></div><button class="sbtn" onclick="addFood('d-items')" style="margin-top:6px">+ Add item</button></div>
+  <div class="card"><div class="ct">Snacks & drinks</div><div id="s-items"><div class="fi"><input type="text" placeholder="e.g. Greek yogurt, almonds"/><button onclick="rmFood(this)">-</button></div></div><button class="sbtn" onclick="addFood('s-items')" style="margin-top:6px">+ Add item</button></div>
+  <div class="card"><div class="ct">Summary</div>
+    <div class="row"><div class="lbl">Water (glasses)</div><div class="num"><button class="nbtn" onclick="adj('water',-1)">-</button><input type="number" id="water" value="0" min="0" max="20" style="width:52px;padding:5px 8px;border:0.5px solid rgba(0,0,0,0.2);border-radius:8px;font-size:13px;text-align:center;background:#fff"/><button class="nbtn" onclick="adj('water',1)">+</button></div></div>
+    <div class="row"><div class="lbl">Total coffees</div><div class="num"><button class="nbtn" onclick="adj('coffees',-1)">-</button><input type="number" id="coffees" value="1" min="0" max="10" style="width:52px;padding:5px 8px;border:0.5px solid rgba(0,0,0,0.2);border-radius:8px;font-size:13px;text-align:center;background:#fff"/><button class="nbtn" onclick="adj('coffees',1)">+</button></div></div>
+    <div class="row"><div class="lbl">Last caffeine</div><input type="text" id="last-caff" placeholder="e.g. 1:00pm" style="width:90px;text-align:center;padding:7px 8px;border:0.5px solid rgba(0,0,0,0.2);border-radius:8px;font-size:13px;background:#fff"/></div>
+    <div class="row"><div><div class="lbl">Alcohol today?</div></div><div class="tog"><button class="tbtn" id="alc-y" onclick="tog('alc','y',this);document.getElementById('alc-row').style.display='flex'">Y</button><button class="tbtn" id="alc-n" onclick="tog('alc','n',this);document.getElementById('alc-row').style.display='none'">N</button></div></div>
+    <div class="rowc" id="alc-row" style="display:none"><div class="lbl">What / how many</div><input type="text" id="alc-desc" placeholder="e.g. 2 beers, 1 glass wine"/></div>
+    <div class="row"><div class="lbl">Diet quality</div>
+      <div style="display:flex;gap:5px">
+        <button class="mbtn" id="dq-clean" onclick="selDiet('Clean',this)">Clean</button>
+        <button class="mbtn" id="dq-mixed" onclick="selDiet('Mixed',this)">Mixed</button>
+        <button class="mbtn" id="dq-off" onclick="selDiet('Off track',this)">Off track</button>
+      </div>
+    </div>
+    <div class="rowc"><div class="lbl">Notes</div><textarea id="food-notes" rows="2" placeholder="Hunger, digestion, cravings..."></textarea></div>
+  </div>
+  <button class="sbtn pri" id="save-food" onclick="save('food',this)">Save food log</button>
+</div>
+
+<!-- EVENING -->
+<div class="section" id="tab-evening">
+  <div class="ssep">Hygiene</div>
+  <div class="card">
+    <div class="row"><div><div class="lbl">Brush teeth (PM)</div></div><div class="tog"><button class="tbtn" id="bpm-y" onclick="tog('bpm','y',this)">Y</button><button class="tbtn" id="bpm-n" onclick="tog('bpm','n',this)">N</button></div></div>
+    <div class="row"><div><div class="lbl">Floss (PM)</div></div><div class="tog"><button class="tbtn" id="flosspm-y" onclick="tog('flosspm','y',this)">Y</button><button class="tbtn" id="flosspm-n" onclick="tog('flosspm','n',this)">N</button></div></div>
+    <div class="row"><div><div class="lbl">Night skincare</div></div><div class="tog"><button class="tbtn" id="skpm-y" onclick="tog('skpm','y',this)">Y</button><button class="tbtn" id="skpm-n" onclick="tog('skpm','n',this)">N</button></div></div>
+  </div>
+  <div class="ssep">Sleep setup</div>
+  <div class="card">
+    <div class="row"><div><div class="lbl">Screens off 30+ min before bed</div></div><div class="tog"><button class="tbtn" id="wind-y" onclick="tog('wind','y',this)">Y</button><button class="tbtn" id="wind-n" onclick="tog('wind','n',this)">N</button></div></div>
+    <div class="row"><div><div class="lbl">Room dark & cold</div></div><div class="tog"><button class="tbtn" id="room-y" onclick="tog('room','y',this)">Y</button><button class="tbtn" id="room-n" onclick="tog('room','n',this)">N</button></div></div>
+    <div class="row"><div><div class="lbl">Phone out of room</div></div><div class="tog"><button class="tbtn" id="phone-y" onclick="tog('phone','y',this)">Y</button><button class="tbtn" id="phone-n" onclick="tog('phone','n',this)">N</button></div></div>
+    <div class="row"><div class="lbl">Target bedtime</div><input type="text" id="bedtime" placeholder="e.g. 10:30pm" style="width:90px;text-align:center;padding:7px 8px;border:0.5px solid rgba(0,0,0,0.2);border-radius:8px;font-size:13px;background:#fff"/></div>
+    <div class="row"><div class="lbl">Actual bedtime</div><input type="text" id="actual-bed" placeholder="e.g. 11:15pm" style="width:90px;text-align:center;padding:7px 8px;border:0.5px solid rgba(0,0,0,0.2);border-radius:8px;font-size:13px;background:#fff"/></div>
+  </div>
+  <div class="ssep">Mind & body</div>
+  <div class="card">
+    <div class="rowc"><div class="lbl">Evening mood</div>
+      <div class="mrow" id="mood-pm">
+        <button class="mbtn" onclick="selMood('pm',this)">Excellent</button>
+        <button class="mbtn" onclick="selMood('pm',this)">Good</button>
+        <button class="mbtn" onclick="selMood('pm',this)">Okay</button>
+        <button class="mbtn" onclick="selMood('pm',this)">Low</button>
+        <button class="mbtn" onclick="selMood('pm',this)">Rough</button>
+      </div>
+    </div>
+    <div class="row"><div><div class="lbl">Stress today (1–10)</div></div><div class="slw"><div class="slabel"><span></span><span class="sval" id="stress-v">5</span></div><input type="range" min="1" max="10" value="5" step="1" oninput="document.getElementById('stress-v').textContent=this.value"/></div></div>
+    <div class="row"><div><div class="lbl">Energy level (1–10)</div></div><div class="slw"><div class="slabel"><span></span><span class="sval" id="energy-v">5</span></div><input type="range" min="1" max="10" value="5" step="1" oninput="document.getElementById('energy-v').textContent=this.value"/></div></div>
+    <div class="row"><div><div class="lbl">Mental clarity (1–10)</div></div><div class="slw"><div class="slabel"><span></span><span class="sval" id="clarity-v">5</span></div><input type="range" min="1" max="10" value="5" step="1" oninput="document.getElementById('clarity-v').textContent=this.value"/></div></div>
+    <div class="row"><div><div class="lbl">Productive day?</div></div><div class="tog"><button class="tbtn" id="prod-y" onclick="tog('prod','y',this)">Y</button><button class="tbtn" id="prod-n" onclick="tog('prod','n',this)">N</button></div></div>
+    <div class="rowc"><div class="lbl">What drove or drained you?</div><textarea id="drove" rows="2" placeholder="Biggest energy source or drain..."></textarea></div>
+    <div class="rowc"><div class="lbl">Reflection</div><textarea id="reflection" rows="2" placeholder="What went well? What would you do differently?"></textarea></div>
+    <div class="rowc"><div class="lbl">Tomorrow's #1 priority</div><textarea id="tomorrow" rows="1" placeholder="One thing that would make tomorrow a win..."></textarea></div>
+  </div>
+  <button class="sbtn pri" id="save-evening" onclick="save('evening',this)">Save evening check-in</button>
+</div>
+
+<!-- STATS -->
+<div class="section" id="tab-stats">
+  <div class="mg">
+    <div class="mc"><div class="ml">Days logged</div><div class="mv" id="d-days">0</div></div>
+    <div class="mc"><div class="ml">Avg recovery</div><div class="mv" id="d-rec">—</div></div>
+    <div class="mc"><div class="ml">Avg HRV</div><div class="mv" id="d-hrv">—</div></div>
+    <div class="mc"><div class="ml">Avg sleep</div><div class="mv" id="d-slp">—</div></div>
+    <div class="mc"><div class="ml">Avg energy</div><div class="mv" id="d-en">—</div></div>
+    <div class="mc"><div class="ml">Avg stress</div><div class="mv" id="d-st">—</div></div>
+    <div class="mc"><div class="ml">Brush streak</div><div class="mv" id="d-br">—</div></div>
+    <div class="mc"><div class="ml">Workouts</div><div class="mv" id="d-wo">0</div></div>
+  </div>
+  <div class="card">
+    <div class="ct">7-day streak</div>
+    <div class="srow" id="streak-row"></div>
+  </div>
+  <div class="card">
+    <div class="ct">Recent entries from Google Sheets</div>
+    <div id="history-list"><div style="font-size:13px;color:#888;font-style:italic">Loading from your Sheet...</div></div>
+  </div>
+  <div class="card"><div class="ct">Recovery trend</div><div style="position:relative;width:100%;height:150px"><canvas id="rec-chart"></canvas></div></div>
+  <div class="card"><div class="ct">HRV trend</div><div style="position:relative;width:100%;height:150px"><canvas id="hrv-chart"></canvas></div></div>
+  <button class="sbtn" onclick="loadFromSheets()">Refresh from Google Sheets</button>
+</div>
+
+<!-- COACH -->
+<div class="section" id="tab-coach">
+  <div class="card">
+    <div class="ct">Today's insight</div>
+    <div id="coach-out" style="font-size:14px;color:#888;font-style:italic;line-height:1.7">Save at least one check-in, then tap below.</div>
+  </div>
+  <button class="sbtn pri" onclick="getCoach()" style="margin-bottom:8px">Generate today's insight</button>
+  <button class="sbtn" onclick="copyForClaude()">Copy all my Sheets data for Claude analysis</button>
+  <button class="sbtn" style="margin-top:4px" onclick="window.open('https://docs.google.com/spreadsheets/d/17CvWnMfN13aLSvy0JcpZ-q-DcG0hvO4lb-mhDhY1q58/edit','_blank')">Open my Google Sheet</button>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const SHEET_ID = '17CvWnMfN13aLSvy0JcpZ-q-DcG0hvO4lb-mhDhY1q58';
+const API_KEY = 'AIzaSyD6xXRTMklkrGP2WW-D_925rRCYgboDMzk';
+const SHEET_NAME = 'Sheet1';
+const BASE_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}`;
+
+const DB={t:{},moods:{},diet:null,logs:[]};
+let rChart=null,hChart=null;
+
+const HEADERS = ['Date','Type','Timestamp','BrushAM','Floss','Shower','SkinAM','Deodorant','Weight','Rested','Sore','SoreDetail','MoodAM','Anxiety','BrainFog','CaffTime','Coffees','Intention','Grateful','Recovery','HRV','RHR','SpO2','RespRate','SkinTemp','SleepPerf','SleepHrs','TIB','SleepCon','REM','Deep','Light','Disturbances','Strain','Cals','Workout','WoType','WoStrain','WoDur','WoAvgHR','WoMaxHR','Breakfast','Lunch','Dinner','Snacks','Water','TotalCoffees','LastCaff','Alcohol','AlcDesc','DietQuality','FoodNotes','BrushPM','FlosssPM','SkinPM','ScreensOff','RoomCold','PhoneOut','TargetBed','ActualBed','MoodPM','Stress','Energy','Clarity','Productive','Drove','Reflection','Tomorrow'];
+
+function showSyncBar(msg, isErr=false){
+  const bar=document.getElementById('sync-bar');
+  bar.textContent=msg;
+  bar.className='sync-bar show'+(isErr?' err':'');
+  setTimeout(()=>bar.className='sync-bar',3000);
+}
+
+function showTab(name,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='stats'){loadFromSheets();updateStats();}
+}
+
+function tog(key,val,btn){
+  DB.t[key]=val;
+  const y=document.getElementById(key+'-y');
+  const n=document.getElementById(key+'-n');
+  if(y)y.className='tbtn'+(val==='y'?' yes':'');
+  if(n)n.className='tbtn'+(val==='n'?' no':'');
+}
+
+function togWo(val){
+  DB.t['wo']=val;
+  document.getElementById('wo-y').className='tbtn'+(val==='y'?' yes':'');
+  document.getElementById('wo-n').className='tbtn'+(val==='n'?' no':'');
+  document.getElementById('wo-detail').style.display=val==='y'?'block':'none';
+}
+
+function selMood(period,btn){
+  DB.moods[period]=btn.textContent;
+  document.getElementById('mood-'+period).querySelectorAll('.mbtn').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+}
+
+function selDiet(val,btn){
+  DB.diet=val;
+  ['clean','mixed','off'].forEach(k=>{const el=document.getElementById('dq-'+k);if(el)el.classList.remove('sel');});
+  btn.classList.add('sel');
+}
+
+function adj(id,d){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.value=Math.max(0,Math.min(parseInt(el.max)||99,parseInt(el.value)+d));
+}
+
+function addFood(cid){
+  const c=document.getElementById(cid);
+  const d=document.createElement('div');d.className='fi';
+  d.innerHTML='<input type="text" placeholder="Add item..."/><button onclick="rmFood(this)">-</button>';
+  c.appendChild(d);
+}
+
+function rmFood(btn){
+  const row=btn.parentElement;const c=row.parentElement;
+  if(c.children.length>1)row.remove();else row.querySelector('input').value='';
+}
+
+function getFoods(id){
+  return Array.from(document.querySelectorAll('#'+id+' input')).map(i=>i.value.trim()).filter(Boolean).join(' | ');
+}
+
+function gv(id){const el=document.getElementById(id);return el?el.value:'';}
+function gs(id){const el=document.getElementById(id);return el?el.textContent:'';}
+
+async function ensureHeaders(){
+  try{
+    const res=await fetch(`${BASE_URL}/values/${SHEET_NAME}!A1:BZ1?key=${API_KEY}`);
+    const data=await res.json();
+    if(!data.values||!data.values[0]||data.values[0].length<5){
+      await appendRow(HEADERS);
+    }
+  }catch(e){}
+}
+
+async function appendRow(values){
+  const url=`${BASE_URL}/values/${SHEET_NAME}!A:A:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS&key=${API_KEY}`;
+  const res=await fetch(url,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({values:[values]})
+  });
+  if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'Sheets write failed');}
+  return res.json();
+}
+
+async function save(type,btn){
+  const orig=btn.textContent;
+  btn.textContent='Saving...';btn.className='sbtn pri';
+
+  const today=new Date().toLocaleDateString();
+  const ts=new Date().toLocaleTimeString();
+  const entry={date:today,type,t:{...DB.t},moods:{...DB.moods}};
+
+  let row=new Array(HEADERS.length).fill('');
+  row[0]=today;row[1]=type;row[2]=ts;
+
+  if(type==='morning'){
+    entry.weight=gv('weight');entry.restFeel=gs('rest-v');entry.anxiety=gs('anx-v');
+    entry.caffTime=gv('caff-time');entry.caffCount=gv('caff-n');
+    entry.intention=gv('intention');entry.grateful=gv('grateful');entry.soreDetail=gv('sore-detail');
+    row[3]=DB.t.bam||'';row[4]=DB.t.floss||'';row[5]=DB.t.shower||'';row[6]=DB.t.skam||'';row[7]=DB.t.deo||'';
+    row[8]=entry.weight;row[9]=entry.restFeel;row[10]=DB.t.sore||'';row[11]=entry.soreDetail;
+    row[12]=DB.moods.am||'';row[13]=entry.anxiety;row[14]=DB.t.fog||'';
+    row[15]=entry.caffTime;row[16]=entry.caffCount;row[17]=entry.intention;row[18]=entry.grateful;
+  } else if(type==='whoop'){
+    entry.recovery=gv('w-rec');entry.hrv=gv('w-hrv');entry.rhr=gv('w-rhr');entry.spo2=gv('w-spo2');
+    entry.rr=gv('w-rr');entry.temp=gv('w-temp');entry.sleepPerf=gv('w-sperf');entry.sleepHrs=gv('w-shrs');
+    entry.tib=gv('w-tib');entry.sleepCon=gv('w-scon');entry.rem=gv('w-rem');entry.deep=gv('w-deep');
+    entry.light=gv('w-light');entry.dist=gv('w-dist');entry.strain=gv('w-strain');entry.cals=gv('w-cals');
+    entry.workout=DB.t['wo']==='y';
+    row[19]=entry.recovery;row[20]=entry.hrv;row[21]=entry.rhr;row[22]=entry.spo2;row[23]=entry.rr;row[24]=entry.temp;
+    row[25]=entry.sleepPerf;row[26]=entry.sleepHrs;row[27]=entry.tib;row[28]=entry.sleepCon;
+    row[29]=entry.rem;row[30]=entry.deep;row[31]=entry.light;row[32]=entry.dist;
+    row[33]=entry.strain;row[34]=entry.cals;row[35]=entry.workout?'yes':'no';
+    if(entry.workout){row[36]=gv('wo-type');row[37]=gv('wo-strain');row[38]=gv('wo-dur');row[39]=gv('wo-avghr');row[40]=gv('wo-maxhr');}
+  } else if(type==='food'){
+    entry.breakfast=getFoods('b-items');entry.lunch=getFoods('l-items');
+    entry.dinner=getFoods('d-items');entry.snacks=getFoods('s-items');
+    entry.water=gv('water');entry.coffees=gv('coffees');entry.lastCaff=gv('last-caff');
+    entry.alc=DB.t['alc'];entry.alcDesc=gv('alc-desc');entry.dietQuality=DB.diet;entry.foodNotes=gv('food-notes');
+    row[41]=entry.breakfast;row[42]=entry.lunch;row[43]=entry.dinner;row[44]=entry.snacks;
+    row[45]=entry.water;row[46]=entry.coffees;row[47]=entry.lastCaff;
+    row[48]=entry.alc||'';row[49]=entry.alcDesc;row[50]=entry.dietQuality||'';row[51]=entry.foodNotes;
+  } else if(type==='evening'){
+    entry.stress=gs('stress-v');entry.energy=gs('energy-v');entry.clarity=gs('clarity-v');
+    entry.bedtime=gv('bedtime');entry.actualBed=gv('actual-bed');
+    entry.drove=gv('drove');entry.reflection=gv('reflection');entry.tomorrow=gv('tomorrow');
+    row[52]=DB.t.bpm||'';row[53]=DB.t.flosspm||'';row[54]=DB.t.skpm||'';
+    row[55]=DB.t.wind||'';row[56]=DB.t.room||'';row[57]=DB.t.phone||'';
+    row[58]=entry.bedtime;row[59]=entry.actualBed;row[60]=DB.moods.pm||'';
+    row[61]=entry.stress;row[62]=entry.energy;row[63]=entry.clarity;
+    row[64]=DB.t.prod||'';row[65]=entry.drove;row[66]=entry.reflection;row[67]=entry.tomorrow;
+  }
+
+  DB.logs.push(entry);
+
+  try{
+    await ensureHeaders();
+    await appendRow(row);
+    btn.textContent='Saved to Sheets!';btn.className='sbtn saved';
+    showSyncBar('Saved to Google Sheets');
+    setTimeout(()=>{btn.textContent=orig;btn.className='sbtn pri';},2500);
+  }catch(e){
+    btn.textContent='Saved locally (Sheets error)';btn.className='sbtn err';
+    showSyncBar('Could not reach Sheets: '+e.message,true);
+    setTimeout(()=>{btn.textContent=orig;btn.className='sbtn pri';},3000);
+  }
+}
+
+async function loadFromSheets(){
+  try{
+    const res=await fetch(`${BASE_URL}/values/${SHEET_NAME}?key=${API_KEY}`);
+    const data=await res.json();
+    if(!data.values||data.values.length<2){
+      document.getElementById('history-list').innerHTML='<div style="font-size:13px;color:#888;font-style:italic">No data yet — save your first check-in.</div>';
+      return;
+    }
+    const rows=data.values.slice(1).reverse().slice(0,20);
+    const html=rows.map(r=>`<div class="history-row"><span>${r[1]||'entry'} — ${r[0]||''}</span><span class="history-date">${r[2]||''}</span></div>`).join('');
+    document.getElementById('history-list').innerHTML=html||'<div style="font-size:13px;color:#888">No entries yet.</div>';
+
+    const whoopRows=data.values.slice(1).filter(r=>r[1]==='whoop');
+    DB.logs=data.values.slice(1).map(r=>({date:r[0],type:r[1],recovery:r[19],hrv:r[20],sleepHrs:r[26],t:{bam:r[3]},moods:{am:r[12],pm:r[60]},energy:r[62],stress:r[61],workout:r[35]==='yes'}));
+    updateStats();
+  }catch(e){
+    document.getElementById('history-list').innerHTML='<div style="font-size:13px;color:#A32D2D">Could not load from Sheets. Check your API key.</div>';
+  }
+}
+
+function updateStats(){
+  document.getElementById('d-days').textContent=DB.logs.length;
+  const byType=t=>DB.logs.filter(l=>l.type===t);
+  const wh=byType('whoop');const ev=byType('evening');const mo=byType('morning');
+  const avg=(arr,k)=>{const v=arr.map(a=>parseFloat(a[k])).filter(v=>!isNaN(v));return v.length?Math.round(v.reduce((a,b)=>a+b,0)/v.length):null;};
+  const rec=avg(wh,'recovery');const hrv=avg(wh,'hrv');const slp=avg(wh,'sleepHrs');const en=avg(ev,'energy');const st=avg(ev,'stress');
+  const recEl=document.getElementById('d-rec');
+  recEl.textContent=rec!=null?rec+'%':'—';
+  recEl.className='mv'+(rec!=null?(rec>=67?' g':rec>=33?' w':' r'):'');
+  document.getElementById('d-hrv').textContent=hrv!=null?hrv+'ms':'—';
+  document.getElementById('d-slp').textContent=slp!=null?parseFloat(slp).toFixed(1)+'h':'—';
+  document.getElementById('d-en').textContent=en!=null?en+'/10':'—';
+  document.getElementById('d-st').textContent=st!=null?st+'/10':'—';
+  const brushDays=mo.filter(m=>m.t&&m.t.bam==='y').length;
+  document.getElementById('d-br').textContent=brushDays?brushDays+' days':'—';
+  document.getElementById('d-wo').textContent=wh.filter(w=>w.workout).length;
+
+  const bar=document.getElementById('streak-row');bar.innerHTML='';
+  const days=['Su','Mo','Tu','We','Th','Fr','Sa'];const tod=new Date().getDay();
+  for(let i=6;i>=0;i--){const d=(tod-i+7)%7;const div=document.createElement('div');div.className='sd'+(i===0?' today':(DB.logs.length>i?' done':' miss'));div.textContent=days[d];bar.appendChild(div);}
+
+  if(typeof Chart==='undefined'||!wh.length)return;
+  if(rChart){rChart.destroy();rChart=null;}if(hChart){hChart.destroy();hChart=null;}
+  const labels=wh.map((_,i)=>'Day '+(i+1));
+  const mk=(id,label,data,color)=>new Chart(document.getElementById(id),{type:'line',data:{labels,datasets:[{label,data,borderColor:color,backgroundColor:color+'18',pointRadius:3,tension:0.3,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:false,ticks:{font:{size:11}}},x:{ticks:{font:{size:11}},grid:{display:false}}}}});
+  rChart=mk('rec-chart','Recovery',wh.map(w=>parseFloat(w.recovery)||null),'#1D9E75');
+  hChart=mk('hrv-chart','HRV',wh.map(w=>parseFloat(w.hrv)||null),'#378ADD');
+}
+
+async function getCoach(){
+  const out=document.getElementById('coach-out');
+  out.style.fontStyle='italic';out.style.color='#888';out.textContent='Loading your Sheets data...';
+  let sheetsSummary='';
+  try{
+    const res=await fetch(`${BASE_URL}/values/${SHEET_NAME}?key=${API_KEY}`);
+    const data=await res.json();
+    if(data.values&&data.values.length>1){
+      const recent=data.values.slice(-8);
+      sheetsSummary=recent.map(r=>r.slice(0,30).join(', ')).join('\n');
+    }
+  }catch(e){}
+  out.textContent='Analyzing...';
+  const localSummary=buildLocalSummary();
+  const combined=sheetsSummary?`Recent Google Sheets data (last 7 entries):\n${sheetsSummary}\n\nToday's local data:\n${localSummary}`:`Today's data:\n${localSummary}`;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',max_tokens:1000,
+      system:'You are a world-class personal performance coach. Analyze this person\'s actual biometric and habit data. Be specific, reference real numbers from their data, be direct and warm. 4-5 sentences max focused on the single highest-leverage thing they should address.',
+      messages:[{role:'user',content:`My performance data:\n\n${combined}\n\nGive me your most important coaching insight based on my actual data.`}]
+    })});
+    const d=await res.json();
+    const text=d.content?.find(c=>c.type==='text')?.text||'No insight generated.';
+    out.style.fontStyle='normal';out.style.color='#1a1a1a';out.textContent=text;
+  }catch(e){
+    out.style.fontStyle='normal';out.textContent='AI coaching requires this file to be open inside claude.ai. Use "Copy all my data" and paste into claude.ai instead.';
+  }
+}
+
+function buildLocalSummary(){
+  if(!DB.logs.length)return'No local data today.';
+  const byType=t=>DB.logs.filter(l=>l.type===t);
+  const wh=byType('whoop');const mo=byType('morning');const ev=byType('evening');const fo=byType('food');
+  let s='';
+  if(wh.length){const l=wh[wh.length-1];s+=`WHOOP: Recovery ${l.recovery}%, HRV ${l.hrv}ms, RHR ${l.rhr}bpm, Sleep ${l.sleepPerf}% perf / ${l.sleepHrs}h, REM ${l.rem}%, Deep ${l.deep}%, Strain ${l.strain}\n`;}
+  if(mo.length){const l=mo[mo.length-1];s+=`MORNING: Weight ${l.weight}lbs, rested ${l.restFeel}/10, anxiety ${l.anxiety}/10, mood ${l.moods.am}, caffeine ${l.caffTime}\n`;}
+  if(fo.length){const l=fo[fo.length-1];s+=`FOOD: Diet ${l.dietQuality}, water ${l.water}g, ${l.coffees} coffees, alcohol ${l.alc||'no'}\n`;}
+  if(ev.length){const l=ev[ev.length-1];s+=`EVENING: Stress ${l.stress}/10, energy ${l.energy}/10, clarity ${l.clarity}/10, mood ${l.moods.pm}, actual bed ${l.actualBed}\n`;}
+  return s;
+}
+
+async function copyForClaude(){
+  let text='Analyze my performance data:\n\n';
+  try{
+    const res=await fetch(`${BASE_URL}/values/${SHEET_NAME}?key=${API_KEY}`);
+    const data=await res.json();
+    if(data.values&&data.values.length>1){
+      const headers=data.values[0];
+      const recent=data.values.slice(-14);
+      text+=recent.map(r=>headers.map((h,i)=>r[i]?`${h}: ${r[i]}`:'').filter(Boolean).join(', ')).join('\n');
+    }
+  }catch(e){text+=buildLocalSummary();}
+  navigator.clipboard.writeText(text).then(()=>{showSyncBar('Copied! Paste into Claude for analysis.');}).catch(()=>alert(text));
+}
+</script>
+</body>
+</html>
