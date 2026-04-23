@@ -59,8 +59,9 @@ input[type=range]{width:100%;accent-color:#1D9E75}
 .sd.done{background:#E1F5EE;color:#0F6E56}
 .sd.miss{background:#f0f0ee;color:#888}
 .sd.today{background:#1D9E75;color:#E1F5EE}
-.sync-bar{background:#E1F5EE;border:0.5px solid #5DCAA5;border-radius:8px;padding:8px 12px;font-size:12px;color:#085041;margin-bottom:1rem;display:none;text-align:center}
-.sync-bar.err{background:#FCEBEB;border-color:#F09595;color:#791F1F}
+.sync-bar{border-radius:8px;padding:8px 12px;font-size:12px;margin-bottom:1rem;display:none;text-align:center}
+.sync-bar.ok{background:#E1F5EE;border:0.5px solid #5DCAA5;color:#085041}
+.sync-bar.err{background:#FCEBEB;border:0.5px solid #F09595;color:#791F1F}
 .sync-bar.show{display:block}
 .history-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid rgba(0,0,0,0.06);font-size:13px}
 .history-row:last-child{border-bottom:none}
@@ -69,9 +70,7 @@ input[type=range]{width:100%;accent-color:#1D9E75}
 </head>
 <body>
 <div class="app">
-
 <div id="sync-bar" class="sync-bar"></div>
-
 <div class="nav">
   <button class="active" onclick="showTab('morning',this)">Morning</button>
   <button onclick="showTab('whoop',this)">Whoop</button>
@@ -94,7 +93,7 @@ input[type=range]{width:100%;accent-color:#1D9E75}
   <div class="ssep">Body</div>
   <div class="card">
     <div class="row"><div><div class="lbl">Weight (lbs)</div><div class="sub">Before eating, after bathroom</div></div><input type="number" id="weight" placeholder="—" style="width:72px;text-align:center;padding:7px 8px;border:0.5px solid rgba(0,0,0,0.2);border-radius:8px;font-size:14px;font-weight:500;background:#fff"/></div>
-    <div class="row"><div><div class="lbl">How rested? (1–10)</div><div class="sub">Your feeling, not Whoop's score</div></div><div class="slw"><div class="slabel"><span></span><span class="sval" id="rest-v">5</span></div><input type="range" min="1" max="10" value="5" step="1" oninput="document.getElementById('rest-v').textContent=this.value"/></div></div>
+    <div class="row"><div><div class="lbl">How rested? (1–10)</div><div class="sub">Your feeling, not Whoop's</div></div><div class="slw"><div class="slabel"><span></span><span class="sval" id="rest-v">5</span></div><input type="range" min="1" max="10" value="5" step="1" oninput="document.getElementById('rest-v').textContent=this.value"/></div></div>
     <div class="row"><div><div class="lbl">Soreness or pain?</div></div><div class="tog"><button class="tbtn" id="sore-y" onclick="tog('sore','y',this);document.getElementById('sore-row').style.display='flex'">Y</button><button class="tbtn" id="sore-n" onclick="tog('sore','n',this);document.getElementById('sore-row').style.display='none'">N</button></div></div>
     <div class="rowc" id="sore-row" style="display:none"><div class="lbl">Where / how bad?</div><input type="text" id="sore-detail" placeholder="e.g. lower back, 4/10"/></div>
   </div>
@@ -146,8 +145,8 @@ input[type=range]{width:100%;accent-color:#1D9E75}
   <div class="card"><div class="ct">Workout</div>
     <div class="row"><div><div class="lbl">Workout today?</div></div>
       <div class="tog">
-        <button class="tbtn" id="wo-y" onclick="togWo('y',this)">Y</button>
-        <button class="tbtn" id="wo-n" onclick="togWo('n',this)">N</button>
+        <button class="tbtn" id="wo-y" onclick="togWo('y')">Y</button>
+        <button class="tbtn" id="wo-n" onclick="togWo('n')">N</button>
       </div>
     </div>
     <div id="wo-detail" style="display:none;margin-top:12px">
@@ -242,12 +241,12 @@ input[type=range]{width:100%;accent-color:#1D9E75}
     <div class="srow" id="streak-row"></div>
   </div>
   <div class="card">
-    <div class="ct">Recent entries from Google Sheets</div>
-    <div id="history-list"><div style="font-size:13px;color:#888;font-style:italic">Loading from your Sheet...</div></div>
+    <div class="ct">Recent entries</div>
+    <div id="history-list"><div style="font-size:13px;color:#888;font-style:italic">Loading...</div></div>
   </div>
   <div class="card"><div class="ct">Recovery trend</div><div style="position:relative;width:100%;height:150px"><canvas id="rec-chart"></canvas></div></div>
   <div class="card"><div class="ct">HRV trend</div><div style="position:relative;width:100%;height:150px"><canvas id="hrv-chart"></canvas></div></div>
-  <button class="sbtn" onclick="loadFromSheets()">Refresh from Google Sheets</button>
+  <button class="sbtn" onclick="loadStats()" style="margin-top:4px">Refresh from Sheets</button>
 </div>
 
 <!-- COACH -->
@@ -257,28 +256,22 @@ input[type=range]{width:100%;accent-color:#1D9E75}
     <div id="coach-out" style="font-size:14px;color:#888;font-style:italic;line-height:1.7">Save at least one check-in, then tap below.</div>
   </div>
   <button class="sbtn pri" onclick="getCoach()" style="margin-bottom:8px">Generate today's insight</button>
-  <button class="sbtn" onclick="copyForClaude()">Copy all my Sheets data for Claude analysis</button>
+  <button class="sbtn" onclick="copyForClaude()">Copy all my data for Claude analysis</button>
   <button class="sbtn" style="margin-top:4px" onclick="window.open('https://docs.google.com/spreadsheets/d/17CvWnMfN13aLSvy0JcpZ-q-DcG0hvO4lb-mhDhY1q58/edit','_blank')">Open my Google Sheet</button>
 </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
-const SHEET_ID = '17CvWnMfN13aLSvy0JcpZ-q-DcG0hvO4lb-mhDhY1q58';
-const API_KEY = 'AIzaSyD6xXRTMklkrGP2WW-D_925rRCYgboDMzk';
-const SHEET_NAME = 'Sheet1';
-const BASE_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}`;
-
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwHtRcOmO3USnMj2lR1wj_4sbUnG30881I_vKtxHU5meBVn3M99E3_bMOSwC3t0XHgX/exec';
+const HEADERS = ['Date','Type','Time','BrushAM','Floss','Shower','SkinAM','Deodorant','Weight','Rested','Sore','SoreDetail','MoodAM','Anxiety','BrainFog','CaffTime','Coffees','Intention','Grateful','Recovery','HRV','RHR','SpO2','RespRate','SkinTemp','SleepPerf','SleepHrs','TIB','SleepCon','REM','Deep','Light','Disturbances','Strain','Cals','Workout','WoType','WoStrain','WoDur','WoAvgHR','WoMaxHR','Breakfast','Lunch','Dinner','Snacks','Water','TotalCoffees','LastCaff','Alcohol','AlcDesc','DietQuality','FoodNotes','BrushPM','FlossPM','SkinPM','ScreensOff','RoomCold','PhoneOut','TargetBed','ActualBed','MoodPM','Stress','Energy','Clarity','Productive','Drove','Reflection','Tomorrow'];
 const DB={t:{},moods:{},diet:null,logs:[]};
 let rChart=null,hChart=null;
 
-const HEADERS = ['Date','Type','Timestamp','BrushAM','Floss','Shower','SkinAM','Deodorant','Weight','Rested','Sore','SoreDetail','MoodAM','Anxiety','BrainFog','CaffTime','Coffees','Intention','Grateful','Recovery','HRV','RHR','SpO2','RespRate','SkinTemp','SleepPerf','SleepHrs','TIB','SleepCon','REM','Deep','Light','Disturbances','Strain','Cals','Workout','WoType','WoStrain','WoDur','WoAvgHR','WoMaxHR','Breakfast','Lunch','Dinner','Snacks','Water','TotalCoffees','LastCaff','Alcohol','AlcDesc','DietQuality','FoodNotes','BrushPM','FlosssPM','SkinPM','ScreensOff','RoomCold','PhoneOut','TargetBed','ActualBed','MoodPM','Stress','Energy','Clarity','Productive','Drove','Reflection','Tomorrow'];
-
-function showSyncBar(msg, isErr=false){
-  const bar=document.getElementById('sync-bar');
-  bar.textContent=msg;
-  bar.className='sync-bar show'+(isErr?' err':'');
-  setTimeout(()=>bar.className='sync-bar',3000);
+function showSyncBar(msg,type='ok'){
+  const b=document.getElementById('sync-bar');
+  b.textContent=msg;b.className='sync-bar show '+type;
+  setTimeout(()=>{b.className='sync-bar';},3500);
 }
 
 function showTab(name,btn){
@@ -286,7 +279,7 @@ function showTab(name,btn){
   document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
   btn.classList.add('active');
-  if(name==='stats'){loadFromSheets();updateStats();}
+  if(name==='stats')loadStats();
 }
 
 function tog(key,val,btn){
@@ -341,112 +334,81 @@ function getFoods(id){
 function gv(id){const el=document.getElementById(id);return el?el.value:'';}
 function gs(id){const el=document.getElementById(id);return el?el.textContent:'';}
 
-async function ensureHeaders(){
-  try{
-    const res=await fetch(`${BASE_URL}/values/${SHEET_NAME}!A1:BZ1?key=${API_KEY}`);
-    const data=await res.json();
-    if(!data.values||!data.values[0]||data.values[0].length<5){
-      await appendRow(HEADERS);
-    }
-  }catch(e){}
-}
-
-async function appendRow(values){
-  const url=`${BASE_URL}/values/${SHEET_NAME}!A:A:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS&key=${API_KEY}`;
-  const res=await fetch(url,{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({values:[values]})
-  });
-  if(!res.ok){const e=await res.json();throw new Error(e.error?.message||'Sheets write failed');}
-  return res.json();
-}
-
 async function save(type,btn){
   const orig=btn.textContent;
   btn.textContent='Saving...';btn.className='sbtn pri';
 
   const today=new Date().toLocaleDateString();
   const ts=new Date().toLocaleTimeString();
-  const entry={date:today,type,t:{...DB.t},moods:{...DB.moods}};
-
   let row=new Array(HEADERS.length).fill('');
   row[0]=today;row[1]=type;row[2]=ts;
 
   if(type==='morning'){
-    entry.weight=gv('weight');entry.restFeel=gs('rest-v');entry.anxiety=gs('anx-v');
-    entry.caffTime=gv('caff-time');entry.caffCount=gv('caff-n');
-    entry.intention=gv('intention');entry.grateful=gv('grateful');entry.soreDetail=gv('sore-detail');
     row[3]=DB.t.bam||'';row[4]=DB.t.floss||'';row[5]=DB.t.shower||'';row[6]=DB.t.skam||'';row[7]=DB.t.deo||'';
-    row[8]=entry.weight;row[9]=entry.restFeel;row[10]=DB.t.sore||'';row[11]=entry.soreDetail;
-    row[12]=DB.moods.am||'';row[13]=entry.anxiety;row[14]=DB.t.fog||'';
-    row[15]=entry.caffTime;row[16]=entry.caffCount;row[17]=entry.intention;row[18]=entry.grateful;
+    row[8]=gv('weight');row[9]=gs('rest-v');row[10]=DB.t.sore||'';row[11]=gv('sore-detail');
+    row[12]=DB.moods.am||'';row[13]=gs('anx-v');row[14]=DB.t.fog||'';
+    row[15]=gv('caff-time');row[16]=gv('caff-n');row[17]=gv('intention');row[18]=gv('grateful');
+    DB.logs.push({date:today,type,t:{...DB.t},moods:{...DB.moods},weight:row[8],restFeel:row[9],anxiety:row[13],caffTime:row[15]});
   } else if(type==='whoop'){
-    entry.recovery=gv('w-rec');entry.hrv=gv('w-hrv');entry.rhr=gv('w-rhr');entry.spo2=gv('w-spo2');
-    entry.rr=gv('w-rr');entry.temp=gv('w-temp');entry.sleepPerf=gv('w-sperf');entry.sleepHrs=gv('w-shrs');
-    entry.tib=gv('w-tib');entry.sleepCon=gv('w-scon');entry.rem=gv('w-rem');entry.deep=gv('w-deep');
-    entry.light=gv('w-light');entry.dist=gv('w-dist');entry.strain=gv('w-strain');entry.cals=gv('w-cals');
-    entry.workout=DB.t['wo']==='y';
-    row[19]=entry.recovery;row[20]=entry.hrv;row[21]=entry.rhr;row[22]=entry.spo2;row[23]=entry.rr;row[24]=entry.temp;
-    row[25]=entry.sleepPerf;row[26]=entry.sleepHrs;row[27]=entry.tib;row[28]=entry.sleepCon;
-    row[29]=entry.rem;row[30]=entry.deep;row[31]=entry.light;row[32]=entry.dist;
-    row[33]=entry.strain;row[34]=entry.cals;row[35]=entry.workout?'yes':'no';
-    if(entry.workout){row[36]=gv('wo-type');row[37]=gv('wo-strain');row[38]=gv('wo-dur');row[39]=gv('wo-avghr');row[40]=gv('wo-maxhr');}
+    row[19]=gv('w-rec');row[20]=gv('w-hrv');row[21]=gv('w-rhr');row[22]=gv('w-spo2');row[23]=gv('w-rr');row[24]=gv('w-temp');
+    row[25]=gv('w-sperf');row[26]=gv('w-shrs');row[27]=gv('w-tib');row[28]=gv('w-scon');
+    row[29]=gv('w-rem');row[30]=gv('w-deep');row[31]=gv('w-light');row[32]=gv('w-dist');
+    row[33]=gv('w-strain');row[34]=gv('w-cals');row[35]=DB.t['wo']==='y'?'yes':'no';
+    if(DB.t['wo']==='y'){row[36]=gv('wo-type');row[37]=gv('wo-strain');row[38]=gv('wo-dur');row[39]=gv('wo-avghr');row[40]=gv('wo-maxhr');}
+    DB.logs.push({date:today,type,recovery:row[19],hrv:row[20],sleepHrs:row[26],workout:row[35]==='yes'});
   } else if(type==='food'){
-    entry.breakfast=getFoods('b-items');entry.lunch=getFoods('l-items');
-    entry.dinner=getFoods('d-items');entry.snacks=getFoods('s-items');
-    entry.water=gv('water');entry.coffees=gv('coffees');entry.lastCaff=gv('last-caff');
-    entry.alc=DB.t['alc'];entry.alcDesc=gv('alc-desc');entry.dietQuality=DB.diet;entry.foodNotes=gv('food-notes');
-    row[41]=entry.breakfast;row[42]=entry.lunch;row[43]=entry.dinner;row[44]=entry.snacks;
-    row[45]=entry.water;row[46]=entry.coffees;row[47]=entry.lastCaff;
-    row[48]=entry.alc||'';row[49]=entry.alcDesc;row[50]=entry.dietQuality||'';row[51]=entry.foodNotes;
+    row[41]=getFoods('b-items');row[42]=getFoods('l-items');row[43]=getFoods('d-items');row[44]=getFoods('s-items');
+    row[45]=gv('water');row[46]=gv('coffees');row[47]=gv('last-caff');
+    row[48]=DB.t['alc']||'';row[49]=gv('alc-desc');row[50]=DB.diet||'';row[51]=gv('food-notes');
+    DB.logs.push({date:today,type,water:row[45],coffees:row[46],diet:row[50]});
   } else if(type==='evening'){
-    entry.stress=gs('stress-v');entry.energy=gs('energy-v');entry.clarity=gs('clarity-v');
-    entry.bedtime=gv('bedtime');entry.actualBed=gv('actual-bed');
-    entry.drove=gv('drove');entry.reflection=gv('reflection');entry.tomorrow=gv('tomorrow');
     row[52]=DB.t.bpm||'';row[53]=DB.t.flosspm||'';row[54]=DB.t.skpm||'';
     row[55]=DB.t.wind||'';row[56]=DB.t.room||'';row[57]=DB.t.phone||'';
-    row[58]=entry.bedtime;row[59]=entry.actualBed;row[60]=DB.moods.pm||'';
-    row[61]=entry.stress;row[62]=entry.energy;row[63]=entry.clarity;
-    row[64]=DB.t.prod||'';row[65]=entry.drove;row[66]=entry.reflection;row[67]=entry.tomorrow;
+    row[58]=gv('bedtime');row[59]=gv('actual-bed');row[60]=DB.moods.pm||'';
+    row[61]=gs('stress-v');row[62]=gs('energy-v');row[63]=gs('clarity-v');
+    row[64]=DB.t.prod||'';row[65]=gv('drove');row[66]=gv('reflection');row[67]=gv('tomorrow');
+    DB.logs.push({date:today,type,stress:row[61],energy:row[62],clarity:row[63],moods:{pm:row[60]}});
   }
-
-  DB.logs.push(entry);
 
   try{
-    await ensureHeaders();
-    await appendRow(row);
-    btn.textContent='Saved to Sheets!';btn.className='sbtn saved';
-    showSyncBar('Saved to Google Sheets');
-    setTimeout(()=>{btn.textContent=orig;btn.className='sbtn pri';},2500);
+    const res=await fetch(SCRIPT_URL,{
+      method:'POST',
+      body:JSON.stringify({headers:HEADERS,row})
+    });
+    const data=await res.json();
+    if(data.success){
+      btn.textContent='Saved to Sheets!';btn.className='sbtn saved';
+      showSyncBar('Saved to Google Sheets','ok');
+    } else {
+      throw new Error(data.error||'Unknown error');
+    }
   }catch(e){
-    btn.textContent='Saved locally (Sheets error)';btn.className='sbtn err';
-    showSyncBar('Could not reach Sheets: '+e.message,true);
-    setTimeout(()=>{btn.textContent=orig;btn.className='sbtn pri';},3000);
+    btn.textContent='Saved locally';btn.className='sbtn saved';
+    showSyncBar('Sheets error: '+e.message+' — saved locally','err');
   }
+  setTimeout(()=>{btn.textContent=orig;btn.className='sbtn pri';},3000);
 }
 
-async function loadFromSheets(){
+async function loadStats(){
   try{
-    const res=await fetch(`${BASE_URL}/values/${SHEET_NAME}?key=${API_KEY}`);
+    const res=await fetch(SCRIPT_URL+'?action=read');
     const data=await res.json();
     if(!data.values||data.values.length<2){
-      document.getElementById('history-list').innerHTML='<div style="font-size:13px;color:#888;font-style:italic">No data yet — save your first check-in.</div>';
+      document.getElementById('history-list').innerHTML='<div style="font-size:13px;color:#888;font-style:italic">No entries yet.</div>';
       return;
     }
-    const rows=data.values.slice(1).reverse().slice(0,20);
-    const html=rows.map(r=>`<div class="history-row"><span>${r[1]||'entry'} — ${r[0]||''}</span><span class="history-date">${r[2]||''}</span></div>`).join('');
-    document.getElementById('history-list').innerHTML=html||'<div style="font-size:13px;color:#888">No entries yet.</div>';
-
-    const whoopRows=data.values.slice(1).filter(r=>r[1]==='whoop');
-    DB.logs=data.values.slice(1).map(r=>({date:r[0],type:r[1],recovery:r[19],hrv:r[20],sleepHrs:r[26],t:{bam:r[3]},moods:{am:r[12],pm:r[60]},energy:r[62],stress:r[61],workout:r[35]==='yes'}));
-    updateStats();
+    const rows=data.values.slice(1);
+    DB.logs=rows.map(r=>({date:r[0],type:r[1],recovery:r[19],hrv:r[20],sleepHrs:r[26],workout:r[35]==='yes',t:{bam:r[3]},moods:{am:r[12],pm:r[60]},energy:r[62],stress:r[61]}));
+    const recent=rows.slice(-15).reverse();
+    document.getElementById('history-list').innerHTML=recent.map(r=>`<div class="history-row"><span style="font-weight:500">${r[1]||'entry'}</span><span>${r[0]||''} ${r[2]||''}</span></div>`).join('');
+    renderStats();
   }catch(e){
-    document.getElementById('history-list').innerHTML='<div style="font-size:13px;color:#A32D2D">Could not load from Sheets. Check your API key.</div>';
+    document.getElementById('history-list').innerHTML='<div style="font-size:13px;color:#A32D2D">Could not load from Sheets.</div>';
+    renderStats();
   }
 }
 
-function updateStats(){
+function renderStats(){
   document.getElementById('d-days').textContent=DB.logs.length;
   const byType=t=>DB.logs.filter(l=>l.type===t);
   const wh=byType('whoop');const ev=byType('evening');const mo=byType('morning');
@@ -459,14 +421,11 @@ function updateStats(){
   document.getElementById('d-slp').textContent=slp!=null?parseFloat(slp).toFixed(1)+'h':'—';
   document.getElementById('d-en').textContent=en!=null?en+'/10':'—';
   document.getElementById('d-st').textContent=st!=null?st+'/10':'—';
-  const brushDays=mo.filter(m=>m.t&&m.t.bam==='y').length;
-  document.getElementById('d-br').textContent=brushDays?brushDays+' days':'—';
+  document.getElementById('d-br').textContent=mo.filter(m=>m.t&&m.t.bam==='y').length+' days';
   document.getElementById('d-wo').textContent=wh.filter(w=>w.workout).length;
-
   const bar=document.getElementById('streak-row');bar.innerHTML='';
   const days=['Su','Mo','Tu','We','Th','Fr','Sa'];const tod=new Date().getDay();
   for(let i=6;i>=0;i--){const d=(tod-i+7)%7;const div=document.createElement('div');div.className='sd'+(i===0?' today':(DB.logs.length>i?' done':' miss'));div.textContent=days[d];bar.appendChild(div);}
-
   if(typeof Chart==='undefined'||!wh.length)return;
   if(rChart){rChart.destroy();rChart=null;}if(hChart){hChart.destroy();hChart=null;}
   const labels=wh.map((_,i)=>'Day '+(i+1));
@@ -477,57 +436,56 @@ function updateStats(){
 
 async function getCoach(){
   const out=document.getElementById('coach-out');
-  out.style.fontStyle='italic';out.style.color='#888';out.textContent='Loading your Sheets data...';
-  let sheetsSummary='';
+  out.style.fontStyle='italic';out.style.color='#888';out.textContent='Loading your data...';
+  let summary='';
   try{
-    const res=await fetch(`${BASE_URL}/values/${SHEET_NAME}?key=${API_KEY}`);
+    const res=await fetch(SCRIPT_URL+'?action=read');
     const data=await res.json();
     if(data.values&&data.values.length>1){
       const recent=data.values.slice(-8);
-      sheetsSummary=recent.map(r=>r.slice(0,30).join(', ')).join('\n');
+      summary='Recent data (last 7 days):\n'+recent.map(r=>r.filter(Boolean).slice(0,20).join(', ')).join('\n');
     }
   }catch(e){}
+  summary+='\n\nLocal today:\n'+buildLocalSummary();
   out.textContent='Analyzing...';
-  const localSummary=buildLocalSummary();
-  const combined=sheetsSummary?`Recent Google Sheets data (last 7 entries):\n${sheetsSummary}\n\nToday's local data:\n${localSummary}`:`Today's data:\n${localSummary}`;
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
       model:'claude-sonnet-4-20250514',max_tokens:1000,
-      system:'You are a world-class personal performance coach. Analyze this person\'s actual biometric and habit data. Be specific, reference real numbers from their data, be direct and warm. 4-5 sentences max focused on the single highest-leverage thing they should address.',
-      messages:[{role:'user',content:`My performance data:\n\n${combined}\n\nGive me your most important coaching insight based on my actual data.`}]
+      system:'You are a world-class personal performance coach. Analyze this person\'s actual biometric and habit data. Be specific, reference real numbers, be direct and warm. 4-5 sentences max on the single highest-leverage thing to address.',
+      messages:[{role:'user',content:`My performance data:\n\n${summary}\n\nGive me your most important coaching insight based on my actual numbers.`}]
     })});
     const d=await res.json();
     const text=d.content?.find(c=>c.type==='text')?.text||'No insight generated.';
     out.style.fontStyle='normal';out.style.color='#1a1a1a';out.textContent=text;
   }catch(e){
-    out.style.fontStyle='normal';out.textContent='AI coaching requires this file to be open inside claude.ai. Use "Copy all my data" and paste into claude.ai instead.';
+    out.style.fontStyle='normal';
+    out.textContent='AI coaching works when opened inside claude.ai. Use "Copy all my data" to paste into Claude for analysis.';
   }
 }
 
 function buildLocalSummary(){
-  if(!DB.logs.length)return'No local data today.';
   const byType=t=>DB.logs.filter(l=>l.type===t);
-  const wh=byType('whoop');const mo=byType('morning');const ev=byType('evening');const fo=byType('food');
+  const wh=byType('whoop');const mo=byType('morning');const ev=byType('evening');
   let s='';
-  if(wh.length){const l=wh[wh.length-1];s+=`WHOOP: Recovery ${l.recovery}%, HRV ${l.hrv}ms, RHR ${l.rhr}bpm, Sleep ${l.sleepPerf}% perf / ${l.sleepHrs}h, REM ${l.rem}%, Deep ${l.deep}%, Strain ${l.strain}\n`;}
-  if(mo.length){const l=mo[mo.length-1];s+=`MORNING: Weight ${l.weight}lbs, rested ${l.restFeel}/10, anxiety ${l.anxiety}/10, mood ${l.moods.am}, caffeine ${l.caffTime}\n`;}
-  if(fo.length){const l=fo[fo.length-1];s+=`FOOD: Diet ${l.dietQuality}, water ${l.water}g, ${l.coffees} coffees, alcohol ${l.alc||'no'}\n`;}
-  if(ev.length){const l=ev[ev.length-1];s+=`EVENING: Stress ${l.stress}/10, energy ${l.energy}/10, clarity ${l.clarity}/10, mood ${l.moods.pm}, actual bed ${l.actualBed}\n`;}
-  return s;
+  if(wh.length){const l=wh[wh.length-1];s+=`WHOOP: Recovery ${l.recovery}%, HRV ${l.hrv}ms, Sleep ${l.sleepHrs}h, Workout: ${l.workout?'yes':'no'}\n`;}
+  if(mo.length){const l=mo[mo.length-1];s+=`MORNING: Weight ${l.weight}lbs, Rested ${l.restFeel}/10, Mood ${l.moods&&l.moods.am}\n`;}
+  if(ev.length){const l=ev[ev.length-1];s+=`EVENING: Stress ${l.stress}/10, Energy ${l.energy}/10, Mood ${l.moods&&l.moods.pm}\n`;}
+  return s||'No local data yet.';
 }
 
 async function copyForClaude(){
   let text='Analyze my performance data:\n\n';
   try{
-    const res=await fetch(`${BASE_URL}/values/${SHEET_NAME}?key=${API_KEY}`);
+    const res=await fetch(SCRIPT_URL+'?action=read');
     const data=await res.json();
     if(data.values&&data.values.length>1){
       const headers=data.values[0];
-      const recent=data.values.slice(-14);
-      text+=recent.map(r=>headers.map((h,i)=>r[i]?`${h}: ${r[i]}`:'').filter(Boolean).join(', ')).join('\n');
+      data.values.slice(-14).forEach(r=>{
+        text+=headers.map((h,i)=>r[i]?`${h}:${r[i]}`:'').filter(Boolean).join(', ')+'\n';
+      });
     }
   }catch(e){text+=buildLocalSummary();}
-  navigator.clipboard.writeText(text).then(()=>{showSyncBar('Copied! Paste into Claude for analysis.');}).catch(()=>alert(text));
+  navigator.clipboard.writeText(text).then(()=>showSyncBar('Copied! Paste into Claude.','ok')).catch(()=>alert(text));
 }
 </script>
 </body>
